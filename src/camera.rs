@@ -2,14 +2,15 @@ use crate::colour::{Colour, write_colour};
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vec3::{Point3, Vec3};
+use crate::vec3::{Point3, Vec3, random_vector_on_hemisphere};
 use crate::{INFINITY, random_f64};
 
 #[derive(Debug, Default)]
 pub struct Camera {
-    pub aspect_ratio: f64,
-    pub image_width: i32,
-    pub samples_per_pixel: i32,
+    pub aspect_ratio: f64,      // Ratio of image width over height
+    pub image_width: i32,       // Rendered image width in pixels
+    pub samples_per_pixel: i32, // Num of random samples per pixel (anti-aliasing)
+    pub max_depth: i32,         // Max num of ray bounces
     image_height: i32,
     pixel_sample_scale: f64,
     centre: Point3,
@@ -24,6 +25,7 @@ impl Camera {
             aspect_ratio: 1.0,
             image_width: 100,
             samples_per_pixel: 10,
+            max_depth: 10,
             ..Default::default()
         }
     }
@@ -38,7 +40,7 @@ impl Camera {
                 let mut pixel_colour = Colour::zero();
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_colour += Camera::ray_colour(&r, world);
+                    pixel_colour += Camera::ray_colour(&r, self.max_depth, world);
                 }
                 write_colour(self.pixel_sample_scale * pixel_colour);
             }
@@ -77,10 +79,16 @@ impl Camera {
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
     }
 
-    fn ray_colour<T: Hittable>(ray: &Ray, world: &T) -> Colour {
+    fn ray_colour<T: Hittable>(ray: &Ray, depth: i32, world: &T) -> Colour {
+        // Hit ray bounce limit
+        if depth <= 0 {
+            return Colour::zero();
+        }
+
         let mut rec = HitRecord::default();
-        if world.hit(ray, Interval::new(0.0, INFINITY), &mut rec) {
-            return 0.5 * (rec.normal + Colour::new(1.0, 1.0, 1.0));
+        if world.hit(ray, Interval::new(0.001, INFINITY), &mut rec) {
+            let direction = random_vector_on_hemisphere(rec.normal);
+            return 0.5 * Self::ray_colour(&Ray::new(rec.p, direction), depth - 1, world);
         }
 
         let unit_direction = ray.direction.unit();

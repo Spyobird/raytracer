@@ -1,5 +1,7 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+use crate::{random_f64, random_f64_in_range};
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Vec3 {
     pub x: f64,
@@ -8,6 +10,26 @@ pub struct Vec3 {
 }
 
 pub type Point3 = Vec3;
+
+// Hemisphere functions
+fn random_unit_vector_in_sphere() -> Vec3 {
+    loop {
+        let p = Vec3::random();
+        let lensq = p.length_squared();
+        if 1e-160 < lensq && lensq <= 1.0 {
+            return p / lensq.sqrt();
+        }
+    }
+}
+
+pub fn random_vector_on_hemisphere(normal: Vec3) -> Vec3 {
+    let on_unit_sphere = random_unit_vector_in_sphere();
+    if on_unit_sphere.dot(normal) > 0.0 {
+        return on_unit_sphere;
+    } else {
+        return -on_unit_sphere;
+    }
+}
 
 impl Vec3 {
     pub fn zero() -> Self {
@@ -44,6 +66,22 @@ impl Vec3 {
 
     pub fn unit(&self) -> Self {
         *self / self.length()
+    }
+
+    pub fn random() -> Self {
+        Self {
+            x: random_f64(),
+            y: random_f64(),
+            z: random_f64(),
+        }
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Self {
+        Self {
+            x: random_f64_in_range(min, max),
+            y: random_f64_in_range(min, max),
+            z: random_f64_in_range(min, max),
+        }
     }
 }
 
