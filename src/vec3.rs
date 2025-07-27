@@ -11,8 +11,8 @@ pub struct Vec3 {
 
 pub type Point3 = Vec3;
 
-// Hemisphere functions
-fn random_unit_vector_in_sphere() -> Vec3 {
+// Utility functions
+pub fn random_unit_vector() -> Vec3 {
     loop {
         let p = Vec3::random();
         let lensq = p.length_squared();
@@ -23,7 +23,7 @@ fn random_unit_vector_in_sphere() -> Vec3 {
 }
 
 pub fn random_vector_on_hemisphere(normal: Vec3) -> Vec3 {
-    let on_unit_sphere = random_unit_vector_in_sphere();
+    let on_unit_sphere = random_unit_vector();
     if on_unit_sphere.dot(normal) > 0.0 {
         return on_unit_sphere;
     } else {

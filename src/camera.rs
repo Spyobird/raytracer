@@ -2,7 +2,7 @@ use crate::colour::{Colour, write_colour};
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vec3::{Point3, Vec3, random_vector_on_hemisphere};
+use crate::vec3::{Point3, Vec3, random_unit_vector};
 use crate::{INFINITY, random_f64};
 
 #[derive(Debug, Default)]
@@ -87,7 +87,7 @@ impl Camera {
 
         let mut rec = HitRecord::default();
         if world.hit(ray, Interval::new(0.001, INFINITY), &mut rec) {
-            let direction = random_vector_on_hemisphere(rec.normal);
+            let direction = rec.normal + random_unit_vector();
             return 0.5 * Self::ray_colour(&Ray::new(rec.p, direction), depth - 1, world);
         }
 
