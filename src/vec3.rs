@@ -31,6 +31,10 @@ pub fn random_vector_on_hemisphere(normal: Vec3) -> Vec3 {
     }
 }
 
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - 2.0 * v.dot(n) * n
+}
+
 impl Vec3 {
     pub fn zero() -> Self {
         Self {
@@ -66,6 +70,11 @@ impl Vec3 {
 
     pub fn unit(&self) -> Self {
         *self / self.length()
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
     }
 
     pub fn random() -> Self {

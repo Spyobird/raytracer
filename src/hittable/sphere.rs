@@ -1,17 +1,22 @@
+use std::sync::Arc;
+
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::vec3::Point3;
 
 pub struct Sphere {
     centre: Point3,
     radius: f64,
+    mat: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(centre: Point3, radius: f64) -> Self {
+    pub fn new(centre: Point3, radius: f64, mat: Arc<dyn Material>) -> Self {
         Self {
             centre,
             radius: f64::max(0.0, radius),
+            mat,
         }
     }
 }
@@ -41,6 +46,7 @@ impl Hittable for Sphere {
         rec.p = ray.at(rec.t);
         let outward_normal = (rec.p - self.centre) / self.radius;
         rec.set_face_normal(ray, outward_normal);
+        rec.mat = Some(self.mat.clone());
 
         return true;
     }

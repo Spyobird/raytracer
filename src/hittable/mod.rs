@@ -1,21 +1,19 @@
-use std::vec;
+use std::sync::Arc;
 
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
 
 pub mod sphere;
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
+    pub mat: Option<Arc<dyn Material>>,
     pub t: f64,
     pub front_face: bool,
-}
-
-pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>,
 }
 
 impl HitRecord {
@@ -27,6 +25,11 @@ impl HitRecord {
             -outward_normal
         };
     }
+}
+
+// TODO: change to Arc if needed
+pub struct HittableList {
+    objects: Vec<Box<dyn Hittable>>,
 }
 
 impl HittableList {

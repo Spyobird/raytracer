@@ -4,6 +4,7 @@ pub mod camera;
 pub mod colour;
 pub mod hittable;
 pub mod interval;
+pub mod material;
 pub mod ray;
 pub mod vec3;
 

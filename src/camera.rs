@@ -87,10 +87,21 @@ impl Camera {
 
         let mut rec = HitRecord::default();
         if world.hit(ray, Interval::new(0.001, INFINITY), &mut rec) {
-            let direction = rec.normal + random_unit_vector();
-            return 0.5 * Self::ray_colour(&Ray::new(rec.p, direction), depth - 1, world);
+            let mut scattered = Ray::default();
+            let mut attenuation = Colour::default();
+            // WARN may panic in unwrap()
+            if rec
+                .mat
+                .as_ref()
+                .unwrap()
+                .scatter(ray, &rec, &mut attenuation, &mut scattered)
+            {
+                return attenuation * Self::ray_colour(&scattered, depth - 1, world);
+            }
+            return Colour::zero();
         }
 
+        // Background colour
         let unit_direction = ray.direction.unit();
         let a = 0.5 * (unit_direction.y + 1.0);
         (1.0 - a) * Colour::new(1.0, 1.0, 1.0) + a * Colour::new(0.5, 0.7, 1.0)
