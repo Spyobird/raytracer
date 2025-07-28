@@ -70,6 +70,6 @@ impl Hittable for HittableList {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable: Sync + Send {
     fn hit(&self, ray: &Ray, t_range: Interval, rec: &mut HitRecord) -> bool;
 }

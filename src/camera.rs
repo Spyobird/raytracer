@@ -1,9 +1,13 @@
+use std::sync::Arc;
+
+use rayon::prelude::*;
+
 use crate::colour::{Colour, write_colour};
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3, random_in_unit_disk};
-use crate::{INFINITY, degrees_to_radians, random_f64};
+use crate::{INFINITY, camera, degrees_to_radians, random_f64};
 
 #[derive(Debug, Default)]
 pub struct Camera {
@@ -51,20 +55,34 @@ impl Camera {
         }
     }
 
-    pub fn render<T: Hittable>(&mut self, world: &T) {
+    pub fn render(&mut self, world: Arc<dyn Hittable>) {
         self.initialize();
 
-        print!("P3\n{} {}\n255\n", self.image_width, self.image_height);
-        for j in 0..self.image_height {
-            eprintln!("\rScanlines remaining: {}", self.image_height - j);
-            for i in 0..self.image_width {
+        let image_size = self.image_width * self.image_height;
+        eprintln!("\rConstructing image with {} pixels", image_size);
+        let mut image = vec![Colour::zero(); image_size as usize];
+        (0..image_size)
+            .into_par_iter()
+            .map(|index| {
+                let i = index % self.image_width;
+                let j = index / self.image_width;
+
+                if index % 1000 == 0 {
+                    eprintln!("\rRendered: {}/{}", index, image_size);
+                }
+
                 let mut pixel_colour = Colour::zero();
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_colour += Camera::ray_colour(&r, self.max_depth, world);
+                    pixel_colour += Camera::ray_colour(&r, self.max_depth, world.clone());
                 }
-                write_colour(self.pixel_sample_scale * pixel_colour);
-            }
+                pixel_colour
+            })
+            .collect_into_vec(&mut image);
+
+        print!("P3\n{} {}\n255\n", self.image_width, self.image_height);
+        for pixel_colour in image {
+            write_colour(self.pixel_sample_scale * pixel_colour);
         }
         eprintln!("\rDone!");
     }
@@ -111,7 +129,7 @@ impl Camera {
         self.defocus_disk_v = self.v * defocus_radius;
     }
 
-    fn ray_colour<T: Hittable>(ray: &Ray, depth: i32, world: &T) -> Colour {
+    fn ray_colour(ray: &Ray, depth: i32, world: Arc<dyn Hittable>) -> Colour {
         // Hit ray bounce limit
         if depth <= 0 {
             return Colour::zero();
@@ -128,7 +146,7 @@ impl Camera {
                 .unwrap()
                 .scatter(ray, &rec, &mut attenuation, &mut scattered)
             {
-                return attenuation * Self::ray_colour(&scattered, depth - 1, world);
+                return attenuation * Self::ray_colour(&scattered, depth - 1, world.clone());
             }
             return Colour::zero();
         }
