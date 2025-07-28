@@ -4,6 +4,8 @@ use raytracer::camera::Camera;
 use raytracer::colour::Colour;
 use raytracer::hittable::HittableList;
 use raytracer::hittable::sphere::Sphere;
+use raytracer::material;
+use raytracer::material::dielectric::Dielectric;
 use raytracer::material::lambertian::Lambertian;
 use raytracer::material::metal::Metal;
 use raytracer::vec3::Point3;
@@ -15,8 +17,9 @@ fn main() {
     // Materials
     let material_ground = Arc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
     let material_center = Arc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.5)));
-    let material_left = Arc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
-    let material_right = Arc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
+    let material_left = Arc::new(Dielectric::new(1.5));
+    let material_bubble = Arc::new(Dielectric::new(1.0 / 1.5));
+    let material_right = Arc::new(Metal::new(Colour::new(0.8, 0.6, 0.2), 1.0));
 
     // Objects
     world.add(Sphere::new(
@@ -33,6 +36,11 @@ fn main() {
         Point3::new(-1.0, 0.0, -1.0),
         0.5,
         material_left.clone(),
+    ));
+    world.add(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.4,
+        material_bubble.clone(),
     ));
     world.add(Sphere::new(
         Point3::new(1.0, 0.0, -1.0),
