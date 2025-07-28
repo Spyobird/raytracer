@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
+use raytracer::PI;
 use raytracer::camera::Camera;
 use raytracer::colour::Colour;
 use raytracer::hittable::HittableList;
 use raytracer::hittable::sphere::Sphere;
-use raytracer::material;
 use raytracer::material::dielectric::Dielectric;
 use raytracer::material::lambertian::Lambertian;
 use raytracer::material::metal::Metal;
-use raytracer::vec3::Point3;
+use raytracer::vec3::{Point3, Vec3};
 
 fn main() {
     // World
@@ -54,6 +54,11 @@ fn main() {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+
+    cam.vfov = 20.0;
+    cam.lookfrom = Point3::new(-2.0, 2.0, 1.0);
+    cam.lookat = Point3::new(0.0, 0.0, -1.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
 
     cam.render(&world);
 }
